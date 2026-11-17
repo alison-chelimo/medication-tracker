@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block content %}
+<p><a href="{{ url_for('patient_list') }}">&larr; Back to patients</a></p>
+
+<h2>{{ patient.name }}</h2>
+<p>{{ patient.ward }}, Bed {{ patient.bed }} &middot; {{ today.strftime("%A, %d %B %Y") }}</p>
+
+{% if overdue_doses %}
+<div class="flash flash-error">
+    <strong>&#9888; {{ overdue_doses|length }} dose(s) overdue:</strong>
+    {% for d in overdue_doses %}
+        {{ d.medication.name }} ({{ d.slot }}){% if not loop.last %}, {% endif %}
+    {% endfor %}
+</div>
+{% endif %}
+
+<h3>What to give at each time</h3>
+<table>
+    <thead>
+        <tr>
+            {% for slot in slots %}
+            <th>{{ slot|capitalize }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            {% for slot in slots %}
+            <td>
+                {% set pending_meds = slot_pending[slot] %}
+                {% if pending_meds %}
+                    {% for m in pending_meds %}
+                        <div>&bull; {{ m.name }} ({{ m.dosage }})</div>
+                    {% endfor %}
+                {% else %}
+                    <span class="badge badge-done">Nothing pending</span>
+                {% endif %}
+            </td>
+            {% endfor %}
+        </tr>
+    </tbody>
+</table>
+
+<h3>Medication schedule</h3>
+<table>
+    <thead>
+        <tr>
+            <th>Medication</th>
+            <th>Dosage</th>
+            {% for slot in slots %}
+            <th>{{ slot|capitalize }}</th>
+            {% endfor %}
+        </tr>
+    </thead>
+    <tbody>
+        {% for m in patient.medications %}
+        <tr>
+            <td>{{ m.name }}</td>
+            <td>{{ m.dosage }}</td>
+            {% for slot in slots %}
+            <td>
+                {% set dose = dose_map.get((m.id, slot)) %}
+                {% if dose is none %}
+                    <span style="color:#999;">&ndash;</span>
+                {% elif dose.status == "administered" %}
+                    <span class="badge badge-done">Given {{ dose.administered_at.strftime("%H:%M") }}</span>
+                {% else %}
+                    {% if dose.id in overdue_ids %}
+                        <span class="badge badge-overdue">Overdue</span>
+                    {% else %}
+                        <span class="badge badge-pending">Pending</span>
+                    {% endif %}
+                    <form method="post" action="{{ url_for('administer_dose', dose_id=dose.id) }}" style="display:inline;">
+                        <button type="submit">Give</button>
+                    </form>
+                {% endif %}
+            </td>
+            {% endfor %}
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

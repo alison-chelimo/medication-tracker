@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Medication Tracker</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 900px; margin: 0 auto; padding: 0 1rem 2rem; color: #222; }
+        nav { background: #1f4e79; padding: 0.8rem 1rem; margin: 0 -1rem 1.5rem; }
+        nav a { color: white; text-decoration: none; font-weight: bold; }
+        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+        th, td { text-align: left; padding: 0.6rem; border-bottom: 1px solid #ddd; }
+        th { background: #f0f4f8; }
+        .badge { padding: 0.2rem 0.6rem; border-radius: 12px; font-size: 0.85rem; font-weight: bold; }
+        .badge-done { background: #d4edda; color: #155724; }
+        .badge-pending { background: #fff3cd; color: #856404; }
+        .badge-overdue { background: #f8d7da; color: #721c24; }
+        .flash { padding: 0.7rem 1rem; border-radius: 4px; margin-bottom: 1rem; }
+        .flash-success { background: #d4edda; color: #155724; }
+        .flash-error { background: #f8d7da; color: #721c24; }
+        .flash-warning { background: #fff3cd; color: #856404; }
+        a { color: #1f4e79; }
+    </style>
+</head>
+<body>
+    <nav><a href="{{ url_for('patient_list') }}">Medication Management System</a></nav>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+</body>
+</html>
