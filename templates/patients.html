@@ -1,39 +1,53 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2>Patients</h2>
-<p>Today: {{ today.strftime("%A, %d %B %Y") }}</p>
+<section class="page-heading">
+    <div>
+        <p class="eyebrow">Care overview</p>
+        <h1>Patients</h1>
+    </div>
+    <p class="date-label">Today: {{ today.strftime("%A, %d %B %Y") }}</p>
+</section>
 
-<table>
-    <thead>
-        <tr>
-            <th>Patient</th>
-            <th>Ward / Bed</th>
-            <th>Medications</th>
-            <th>Today's doses</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for p in patients %}
-        <tr>
-            <td>{{ p.name }}</td>
-            <td>{{ p.ward }} / {{ p.bed }}</td>
-            <td>{{ p.medications|length }}</td>
-            <td>
-                {% set s = summary[p.id] %}
-                                {% if s.done == s.total %}
+<section class="patient-grid" aria-label="Patients">
+    {% for p in patients %}
+    {% set s = summary[p.id] %}
+    <article class="patient-card">
+        <div class="patient-card-top">
+            <div>
+                <h2>{{ p.name }}</h2>
+                <p class="muted">{{ p.ward }} <span aria-hidden="true">&middot;</span> Bed {{ p.bed }}</p>
+            </div>
+            <span class="medication-count">{{ p.medications|length }} medication{% if p.medications|length != 1 %}s{% endif %}</span>
+        </div>
+
+        <div class="progress-section">
+            <div class="progress-copy">
+                <span>Today's doses</span>
+                {% if s.done == s.total %}
                     <span class="badge badge-done">{{ s.done }} / {{ s.total }} complete</span>
                 {% else %}
                     <span class="badge badge-pending">{{ s.done }} / {{ s.total }} given</span>
                 {% endif %}
-                {% if s.overdue > 0 %}
-                    <span class="badge badge-overdue">{{ s.overdue }} overdue</span>
-                {% endif %}
-            </td>
-            <td><a href="{{ url_for('patient_detail', patient_id=p.id) }}">View</a></td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+            </div>
+            {% if s.overdue > 0 %}
+                <span class="badge badge-overdue">{{ s.overdue }} overdue</span>
+            {% endif %}
+            {% if s.total > 0 %}
+                {% set progress = (s.done / s.total * 100)|round(0) %}
+            {% else %}
+                {% set progress = 0 %}
+            {% endif %}
+            <div class="progress-track" role="progressbar" aria-label="Doses given" aria-valuemin="0" aria-valuemax="{{ s.total }}" aria-valuenow="{{ s.done }}" aria-valuetext="{{ s.done }} of {{ s.total }} doses given">
+                <span class="progress-fill" style="width: {{ progress }}%;"></span>
+            </div>
+        </div>
+
+        <div class="patient-card-footer">
+            <span class="muted">{{ s.done }} of {{ s.total }} doses given</span>
+            <a class="button button-secondary" href="{{ url_for('patient_detail', patient_id=p.id) }}">View</a>
+        </div>
+    </article>
+    {% endfor %}
+</section>
 {% endblock %}
